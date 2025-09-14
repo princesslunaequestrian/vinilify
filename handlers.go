@@ -170,7 +170,9 @@ func handleGenerateVideo(ctx *th.Context, update tg.Update) error {
 	return nil
 }
 
-func GenerateVideo(ctx *th.Context, update tg.Update, user *types.User) error {
+func GenerateVideo(parentCtx *th.Context, update tg.Update, user *types.User) error {
+
+	ctx := *parentCtx
 
 	defer func() {
 		user.Generating = false
@@ -187,24 +189,24 @@ func GenerateVideo(ctx *th.Context, update tg.Update, user *types.User) error {
 	//1. Download audio and image to the folder
 	audioPath := user.GetAudioPath()
 	imagePath := user.GetImagePath()
-	sendMessage(ctx, types.Message{ChatID: chatID, Content: MessageDownloadStarted})
+	sendMessage(&ctx, types.Message{ChatID: chatID, Content: MessageDownloadStarted})
 
 	err := utils.DownloadAttachment(audioPath, user.AudioURL)
 	if err != nil {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: MessageAudioDownloadFailed})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: MessageAudioDownloadFailed})
 
 		return err
 	}
 	err = utils.DownloadAttachment(imagePath, user.ImageURL)
 	if err != nil {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: MessageImageDownloadFailed})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: MessageImageDownloadFailed})
 
 		return err
 	}
 
-	sendMessage(ctx, types.Message{ChatID: chatID, Content: MessageDownloadComplete})
+	sendMessage(&ctx, types.Message{ChatID: chatID, Content: MessageDownloadComplete})
 
-	sendMessage(ctx, types.Message{ChatID: chatID, Content: MessagePreparingForGeneration})
+	sendMessage(&ctx, types.Message{ChatID: chatID, Content: MessagePreparingForGeneration})
 
 	//2. Mix audio with effect
 
@@ -214,7 +216,7 @@ func GenerateVideo(ctx *th.Context, update tg.Update, user *types.User) error {
 
 	err = converters.Mix(effect, music, mix)
 	if err != nil {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: "Error mixing audio " + err.Error()})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: "Error mixing audio " + err.Error()})
 		return err
 	}
 
@@ -237,7 +239,7 @@ func GenerateVideo(ctx *th.Context, update tg.Update, user *types.User) error {
 	imageOut := filepath.Join(utils.GetRoot(), "users", fmt.Sprintf("%d", user.Id))
 	err = converters.AssembleImages(image, imageOut) //video frames are stored in users/.../01...32.png
 	if err != nil {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: "Error generating images " + err.Error()})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: "Error generating images " + err.Error()})
 		return err
 	}
 
@@ -246,7 +248,7 @@ func GenerateVideo(ctx *th.Context, update tg.Update, user *types.User) error {
 	secondVideoPath := userPath + "/secondvideo.mp4"
 	err = converters.SecondVideo(patternPath, secondVideoPath) //video is stored in users/.../secondvideo.mp4
 	if err != nil {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: "Error generating a second-long video " + err.Error()})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: "Error generating a second-long video " + err.Error()})
 		return err
 	}
 
@@ -254,7 +256,7 @@ func GenerateVideo(ctx *th.Context, update tg.Update, user *types.User) error {
 	minuteVideoPath := userPath + "/minutevideo.mp4"
 	err = converters.LoopVideo(secondVideoPath, minuteVideoPath)
 	if err != nil {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: "Error generating a minute-long video " + err.Error()})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: "Error generating a minute-long video " + err.Error()})
 		return err
 	}
 
@@ -262,21 +264,21 @@ func GenerateVideo(ctx *th.Context, update tg.Update, user *types.User) error {
 	videoPath := userPath + "/output.mp4"
 	err = converters.AddAudio(mix, minuteVideoPath, videoPath)
 	if err != nil {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: "Error generating the final video " + err.Error()})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: "Error generating the final video " + err.Error()})
 		return err
 	}
 
 	//Check if the video file was actually created
 	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
-		sendMessage(ctx, types.Message{ChatID: chatID, Content: "Failed to obtain the final video " + err.Error()})
+		sendMessage(&ctx, types.Message{ChatID: chatID, Content: "Failed to obtain the final video " + err.Error()})
 		return err
 	}
 
 	//7. Send the video note to the user
-	sendMessage(ctx, types.Message{ChatID: chatID, Content: "Video has been generated, sending..."})
+	sendMessage(&ctx, types.Message{ChatID: chatID, Content: "Video has been generated, sending..."})
 
 	ctx.Bot().SendVideoNote(
-		ctx,
+		&ctx,
 		tu.VideoNote(
 			update.Message.Chat.ChatID(),
 			tu.File(mustOpen(videoPath)),
