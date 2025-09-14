@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Nekhaevalex/vinilify/utils"
+	"github.com/princesslunaequestrian/vinilify/utils"
 )
 
 func TestMixFull(t *testing.T) {

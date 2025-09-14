@@ -7,7 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Nekhaevalex/vinilify/utils"
+	tg "github.com/mymmrac/telego"
+	"github.com/princesslunaequestrian/vinilify/utils"
 )
 
 // Type for representing current state of user
@@ -30,6 +31,11 @@ type User struct {
 	Cooldown   time.Time
 	ImageURL   string
 	AudioURL   string
+}
+
+type Message struct {
+	ChatID  tg.ChatID
+	Content string
 }
 
 var (

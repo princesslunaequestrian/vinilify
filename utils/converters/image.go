@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Nekhaevalex/vinilify/utils"
 	"github.com/fogleman/gg"
 	"github.com/nfnt/resize"
+	"github.com/princesslunaequestrian/vinilify/utils"
 )
 
 // Structs and interfaces
@@ -116,7 +116,7 @@ func AssembleImages(imagePath, outpath string) error {
 			dc.DrawImage(disk, 0, 0)
 			dc.DrawImage(pin, 0, 0)
 			dc.SavePNG(fmt.Sprintf("%s/%02d.png", outpath, i+1))
-			fmt.Println(fmt.Sprintf("%s/%02d.png", outpath, i+1))
+			fmt.Printf("%s/%02d.png\n", outpath, i+1)
 		}(i, &wg)
 	}
 

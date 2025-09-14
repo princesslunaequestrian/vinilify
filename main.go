@@ -1,18 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
-	"github.com/Nekhaevalex/vinilify/types"
 	tg "github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
+	"github.com/princesslunaequestrian/vinilify/types"
 )
 
 // Global hashmap for storing user requests
 var users map[int64]*types.User
 
 func main() {
+
+	ctx := context.Background()
 
 	// Initializing the map of the users
 	users = make(map[int64]*types.User)
@@ -30,7 +33,7 @@ func main() {
 	}
 
 	// Launching updates and handler
-	updates, err := bot.UpdatesViaLongPolling(&tg.GetUpdatesParams{Timeout: 10})
+	updates, err := bot.UpdatesViaLongPolling(ctx, &tg.GetUpdatesParams{Timeout: 10})
 	if err != nil {
 		log.Panic(err)
 	}
@@ -43,7 +46,7 @@ func main() {
 
 	defer func() {
 		bh.Stop()
-		bot.StopLongPolling()
+		//ctx, cancel := context.WithCancel(context.Background())
 	}()
 
 	bh.Handle(

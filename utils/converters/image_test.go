@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Nekhaevalex/vinilify/utils"
 	"github.com/fogleman/gg"
 	"github.com/nfnt/resize"
+	"github.com/princesslunaequestrian/vinilify/utils"
 )
 
 func TestCropAndRotateImage(t *testing.T) {
